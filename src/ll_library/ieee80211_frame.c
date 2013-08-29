@@ -73,7 +73,7 @@ ieee80211_frame_t *init_ieee80211_frame
 int read_ieee80211_frame(const void *rx_ring, ieee80211_frame_t *rx_frame)
 {
 		//struct tpacket_hdr *header = NULL;
-
+	https://github.com/vieites4/rawsockets/
 		//header = (void *) rx_ring + (rxring_offset * getpagesize());
 
 		log_app_msg("Unsupported mmap reading...\n");
@@ -242,3 +242,4 @@ int print_ieee80211_frame(const ieee80211_frame_t *frame)
 	return(EX_OK);
 
 }
+//mamamama
