@@ -1,0 +1,6 @@
+gn_statemachine.o: core/gn_statemachine.c core/gn_statemachine.h \
+ execution_codes.h
+
+core/gn_statemachine.h:
+
+execution_codes.h:
