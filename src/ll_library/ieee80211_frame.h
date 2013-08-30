@@ -42,8 +42,8 @@
 /***************************************************** IEEE 802.11 structures */
 
 #define IEEE_80211_HLEN 		30		/*!< IEEE 802.11 header length (B). */
-#define IEEE_80211_BLEN 		2312	/*!< IEEE 802.11 body length (B). */
-#define IEEE_80211_FRAME_LEN	2342	/*!< IEEE 802.11 frame length (B). */
+#define IEEE_80211_BLEN 		2313	/*!< IEEE 802.11 body length (B). */
+#define IEEE_80211_FRAME_LEN	2343	/*!< IEEE 802.11 frame length (B). */
 
 /*!
  * \struct ieee80211_header_frame_control
@@ -66,19 +66,19 @@ typedef struct ieee80211_header_frame_control
  */
 typedef struct ieee80211_header
 {
+//const unsigned char *rth, //unsigned char rth[2]; //radio tap header
+	//ieee80211_header_frame_control_t frame_control;						/*!< Frame control field (2 B). */
 
-	ieee80211_header_frame_control_t
-		frame_control;						/*!< Frame control field (2 B). */
+	//uint16_t duration_id;					/*!< Duration id field (2 B). */
 
-	uint16_t duration_id;					/*!< Duration id field (2 B). */
-
-	unsigned char bssid_address[ETH_ALEN];	/*!< BSSID MAC address. */
+	//unsigned char bssid_address[ETH_ALEN];	/*!< BSSID MAC address. */
 	unsigned char src_address[ETH_ALEN];	/*!< Source MAC address. */
 	unsigned char dest_address[ETH_ALEN];	/*!< Destination MAC address. */
 
-	uint16_t sequence_control;				/*!< Sequence control (2 B). */
+	//uint16_t sequence_control;				/*!< Sequence control (2 B). */
 
-	unsigned char dist_address[ETH_ALEN];	/*!< Distribution MAC address. */
+	//unsigned char dist_address[ETH_ALEN];	/*!< Distribution MAC address. */
+	//unsigned char qos[2];//2
 
 } ieee80211_header_t ;
 
@@ -90,9 +90,10 @@ typedef struct ieee80211_header
  */
 typedef struct ieee80211_frame_buffer
 {
-
+//	unsigned char rth[2];
 	ieee80211_header_t header;	/*!< IEEE 802.11 header. */
 	char data[IEEE_80211_BLEN];	/*!< Data body of the IEEE 802.11 frame. */
+//	unsigned char fcs[4];
 
 } ieee80211_buffer_t;
 
@@ -126,12 +127,14 @@ ieee80211_frame_t *new_ieee80211_frame();
  * \return A pointer to the initialized structure.
  */
 ieee80211_frame_t *init_ieee80211_frame
-	(	const uint8_t mac_service, const uint8_t flags,
-		const uint16_t duration_id,
-		const unsigned char *bssid,
-		const unsigned char *h_source, const unsigned char *h_dest,
-		const uint16_t sequence_control,
-		const unsigned char *dist_address	);
+	(//	const uint8_t mac_service, const uint8_t flags,
+		//const uint16_t duration_id,
+		//const unsigned char *bssid,
+		const int ll_sap,
+			const unsigned char *h_source, const unsigned char *h_dest);//,
+		//const uint16_t sequence_control,
+		//const unsigned char *dist_address,
+		//const unsigned char *qos);
 
 /*!
  * \brief Reads from a socket an ll_framebuffer.
