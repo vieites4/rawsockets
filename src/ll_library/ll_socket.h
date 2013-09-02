@@ -199,7 +199,7 @@ tpacket_req_t *init_tpacket_req
 	\param ll_socket The socket to be used.
 	\return The initialized sockaddr_ll structure.
 */
-sockaddr_ll_t *init_sockaddr_ll(const ll_socket_t *ll_socket);
+sockaddr_ll_t *init_sockaddr_ll(const ll_socket_t *ll_socket,bool is_transmitter);
 
 /*!
 	\brief Gets the index of the given link layer level interface from the given
@@ -267,7 +267,7 @@ ll_socket_t *open_ll_socket
 	\param ll_socket Information of the socket to be created.
 	\return Function execution result code.
 */
-int bind_ll_socket(ll_socket_t *ll_socket);
+int bind_ll_socket(ll_socket_t *ll_socket,bool is_transmitter);
 
 /*!
 	\brief Closes the just created link layer level socket.
@@ -281,7 +281,7 @@ int close_ll_socket(const ll_socket_t *ll_socket);
 	\param ll_socket The ll_socket whose address are to be set.
 	\return EX_OK if the socket could be closed correctly, <0 otherwise.
 */
-int set_sockaddr_ll(ll_socket_t *ll_socket);
+int set_sockaddr_ll(ll_socket_t *ll_socket,bool is_transmitter);
 
 /*!
 	\brief Set the given link layer level socket in promiscuous mode.

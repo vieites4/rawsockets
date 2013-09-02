@@ -25,7 +25,7 @@ const unsigned char AMINHA[ETH_ALEN]={ 0x00, 0x22, 0xfb, 0x8f, 0xe4, 0x9a }; //;
 /* new_ieee80211_frame */
 ieee80211_frame_t *new_ieee80211_frame()
 {
-
+	printf("ini4\n");
 	ieee80211_frame_t *buffer = NULL;
 	buffer = (ieee80211_frame_t *)malloc(LEN__IEEE80211_FRAME);
 	memset(buffer, 0, LEN__IEEE80211_FRAME);
@@ -77,7 +77,7 @@ ieee80211_frame_t *init_ieee80211_frame	(	const int ll_sap, const unsigned char 
 {
 
 	ieee80211_frame_t *f = new_ieee80211_frame();
-
+	printf("ini3\n");
 	if ( set_ll_frame(&f->info, TYPE_IEEE_80211, ETH_FRAME_LEN) < 0 )
 		{ log_app_msg("Could not set info adequately!\n"); }
 
@@ -88,10 +88,6 @@ ieee80211_frame_t *init_ieee80211_frame	(	const int ll_sap, const unsigned char 
 	return(f);
 
 }
-
-
-
-
 
 #ifdef KERNEL_RING
 
@@ -111,7 +107,7 @@ int read_ieee80211_frame(const void *rx_ring, ieee80211_frame_t *rx_frame)
 /* ieee80211_frame_rx_cb */
 void ieee80211_frame_rx_cb(const public_ev_arg_t *arg)
 {
-
+printf("inicio\n");
 	ieee80211_frame_t *f = (ieee80211_frame_t *)arg->buffer;
 
 	if ( read_ieee80211_frame(arg->socket_fd, f) < 0 )
@@ -131,9 +127,9 @@ void ieee80211_frame_rx_cb(const public_ev_arg_t *arg)
 /* read_ieee80211_frame */
 int read_ieee80211_frame(const int socket_fd, ieee80211_frame_t *frame)
 {
-
-	int b_read = read(socket_fd, &frame->buffer, IEEE_80211_FRAME_LEN);
-
+printf("read\n");
+	int b_read = recvfrom(socket_fd, &frame->buffer,IEEE_80211_FRAME_LEN, 0,NULL,NULL);//);//ANTES POÑÍA read
+	printf("ini2\n");
 	if ( b_read <= 0 )
 	{
 		log_sys_error("Could not read socket");
@@ -160,7 +156,7 @@ int read_ieee80211_frame(const int socket_fd, ieee80211_frame_t *frame)
 /* ieee80211_frame_tx_cb */
 void ieee80211_frame_tx_cb(const public_ev_arg_t *arg)
 {
-
+printf("ini\n");
 	if ( __tx_ieee80211_test_frame
 				(arg->socket_fd, arg->ll_sap, arg->if_index, arg->if_mac) < 0 )
 	{
@@ -184,8 +180,6 @@ int __tx_ieee80211_test_frame
 {const unsigned char QOS_M[2]={0x00,0x00};const unsigned char RTH[2]={0x00,0x00};
 //	ieee80211_frame_t *tx_frame	= init_ieee80211_frame(0x08, 0x04, 0, ETH_ADDR_BROADCAST, h_source, ETH_ADDR_FAKE,	0,ETH_ADDR_NULL,QOS_M);//null
 //ieee80211_frame_t *tx_frame	= init_ieee80211_frame(0x08, 0x04, 0, ETH_ADDR_BROADCAST, h_source, ETH_ADDR_FAKE,	0,ETH_ADDR_NULL,QO);//null
-
-
 ieee80211_frame_t *tx_frame = init_ieee80211_frame(ll_sap, h_source, AMINHA);//ETH_ADDR_BROADCAST);
 
 tx_frame->info.frame_len = IEEE_80211_HLEN + 10;
@@ -197,15 +191,11 @@ tx_frame->info.frame_len = IEEE_80211_HLEN + 10;
 
 //meter o qos control xusto ó principio do data??
 //meter o fcs dentro do data.
-
-
 	if ( print_ieee80211_frame(tx_frame) < 0 )
 	{
 		log_app_msg("Frame formatted incorrectly!\n");
 		return(EX_ERR);
 	}
-
-
 	struct sockaddr_ll socket_address;
 	/* Address length*/
 
@@ -224,7 +214,6 @@ tx_frame->info.frame_len = IEEE_80211_HLEN + 10;
 	if ( b_written < 0 )
 	{
 		log_sys_error("Frame could not be sent");
-
 		return(EX_SYS);
 	}
 

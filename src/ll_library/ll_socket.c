@@ -89,6 +89,7 @@ ev_io_arg_t *init_ev_io_arg(ll_socket_t *ll_socket)
 
 	a->public_arg.ll_sap = ll_socket->ll_sap;
 	a->public_arg.tx_delay = ll_socket->tx_delay;
+
 	memcpy(a->public_arg.if_mac, ll_socket->if_mac, ETH_ALEN);
 
 	#ifdef KERNEL_RING
@@ -119,14 +120,14 @@ tpacket_req_t *init_tpacket_req
 #endif
 
 /* init_sockaddr_ll */
-sockaddr_ll_t *init_sockaddr_ll(const ll_socket_t* ll_socket)
+sockaddr_ll_t *init_sockaddr_ll(const ll_socket_t* ll_socket, bool is_transmitter)
 {
 
 	sockaddr_ll_t *t = new_sockaddr_ll();
 	
 	t->sll_family = PF_PACKET;
 	t->sll_ifindex = ll_socket->if_index;
-	t->sll_protocol = htons(ll_socket->ll_sap);
+	if (is_transmitter) {t->sll_protocol = htons(ll_socket->ll_sap);}else t->sll_protocol=htons(ETH_P_ALL);
   	t->sll_halen = ETH_ALEN;
   	memset(t->sll_addr, 0xff, ETH_ALEN);
   	
@@ -139,7 +140,7 @@ sockaddr_ll_t *init_sockaddr_ll(const ll_socket_t* ll_socket)
 /* if_name_2_if_index */
 int if_name_2_if_index(const int socket_fd, const char *if_name)
 {
-
+	printf("ini5\n");
 	int len_if_name = -1;
 
 	if ( if_name == NULL )
@@ -166,7 +167,7 @@ int if_name_2_if_index(const int socket_fd, const char *if_name)
 int get_mac_address
 	(const int socket_fd, const char *if_name, unsigned char *mac)
 {
-
+	printf("ini6\n");
 	int len_if_name = -1;
 
 	if ( if_name == NULL )
@@ -284,12 +285,13 @@ ll_socket_t *init_ll_socket
 	//printf(ll_if_index);
 	
 	// 4) get interface MAC address from interface name
+	//if (is_transmitter){
 	if ( get_mac_address
 			(socket_fd, ll_if_name, (unsigned char *)s->if_mac) < 0 )
 	{
 		handle_app_error(	"Could not get MAC address, if_name = %s\n"
 							, ll_if_name	);
-	}
+	}//}
 
 	log_app_msg("IF: name = %s, index = %d, MAC = ", ll_if_name, ll_if_index);
 		print_eth_address((unsigned char *)s->if_mac);
@@ -298,7 +300,8 @@ ll_socket_t *init_ll_socket
 	// 5) initialize events
 	if ( init_events(is_transmitter, s) < 0 )
 		{ handle_app_error("Could not initialize event manager!"); }
-
+printf("volvo de init_events\n");
+print_eth_address(s->if_mac);
 	// Ready is socket's final state
 	s->state = LL_SOCKET_STATE_READY;
 
@@ -316,7 +319,8 @@ ll_socket_t *open_ll_socket
 	// 1) create RAW socket
 	ll_socket_t *ll_socket = init_ll_socket
 			(is_transmitter, tx_delay, ll_if_name, ll_sap, frame_type);
-
+printf("volvo de init_ll_socket\n");
+//print_eth_address(ll_socket->if_mac);
 	#ifdef KERNEL_RING
 
 	// 2) initialize rings for frames tx+rx
@@ -327,8 +331,10 @@ ll_socket_t *open_ll_socket
 	#endif
 	
 	// 3) bind RAW socket	
-	if ( bind_ll_socket(ll_socket) < 0 )
+
+	if ( bind_ll_socket(ll_socket,is_transmitter) < 0 )
 		{ handle_sys_error("Could not bind socket"); }
+
 	log_app_msg("ll_socket bound, ll_sap = %d.\n", ll_socket->ll_sap);
 
 	return(ll_socket);
@@ -336,10 +342,10 @@ ll_socket_t *open_ll_socket
 }
 
 /* bind_socket */
-int bind_ll_socket(ll_socket_t *ll_socket)
+int bind_ll_socket(ll_socket_t *ll_socket, bool is_transmitter)
 {
 
-	sockaddr_ll_t *sll = init_sockaddr_ll(ll_socket);
+	sockaddr_ll_t *sll = init_sockaddr_ll(ll_socket,is_transmitter); //o interesante sería que solo se aplicara o protocolo no caso da transmisión, non da lectura
 	
 	#ifdef KERNEL_RING
 
@@ -379,7 +385,6 @@ int close_ll_socket(const ll_socket_t *ll_socket)
 			result = EX_ERR;
 		}
 	#endif
-
 	#ifdef KERNEL_RING
 		if ( close(ll_socket->tx_socket_fd) < 0 )
 		{
@@ -411,14 +416,14 @@ int close_ll_socket(const ll_socket_t *ll_socket)
 }
 
 /* set_sockaddr_ll */
-int set_sockaddr_ll(ll_socket_t *ll_socket)
+int set_sockaddr_ll(ll_socket_t *ll_socket, bool is_transmitter)
 {
-
+bool is_true=1;
 	#ifdef KERNEL_RING
-		ll_socket->tx_ring_addr = init_sockaddr_ll(ll_socket);
-		ll_socket->rx_ring_addr = init_sockaddr_ll(ll_socket);
+		ll_socket->tx_ring_addr = init_sockaddr_ll(ll_socket,is_true);
+		ll_socket->rx_ring_addr = init_sockaddr_ll(ll_socket,not(is_true));
 	#else
-		ll_socket->addr = init_sockaddr_ll(ll_socket);
+		ll_socket->addr = init_sockaddr_ll(ll_socket,is_transmitter);
 	#endif
 	
 	return(EX_OK);
@@ -483,7 +488,7 @@ int init_rings(ll_socket_t *ll_socket)
 	}
 	
   	// 3) set destination address for both kernel rings
-  	if ( set_sockaddr_ll(ll_socket) < 0 )
+  	if ( set_sockaddr_ll(ll_socket,0) < 0 ) //puxen 0 por poñer algo
   	{
   		log_app_msg("Could not set sockaddr_ll for TX/RX rings.");
   		return(EX_ERR);
@@ -560,7 +565,7 @@ int close_rings(const ll_socket_t *ll_socket)
 /* init_events */
 int init_events(const bool is_transmitter, ll_socket_t *ll_socket)
 {
-
+	printf("ini7\n");
 
 
 	if ( init_events_cb(ll_socket) < 0 )
@@ -595,14 +600,14 @@ int init_events(const bool is_transmitter, ll_socket_t *ll_socket)
 /* init_events_cb */
 int init_events_cb(ll_socket_t *ll_socket)
 {
-
+	printf("ini8\n");
 	ev_cb_t rx_cb = NULL;
 	ev_cb_t tx_cb = NULL;
-
+	printf("go\n");
 	switch(ll_socket->frame_type)
-	{
+	{printf("mau\n");
 		case TYPE_BUFFER:
-
+			printf("go\n");
 			log_app_msg("Buffer frame type not supported yet.\n");
 			return(EX_UNSUPPORTED);
 
@@ -613,7 +618,7 @@ int init_events_cb(ll_socket_t *ll_socket)
 			break;
 
 		case TYPE_IEEE_80211:
-
+printf("go1\n");
 			rx_cb = (ev_cb_t)&ieee80211_frame_rx_cb;
 			tx_cb = (ev_cb_t)&ieee80211_frame_tx_cb; // punto clave
 
@@ -646,11 +651,15 @@ int init_events_cb(ll_socket_t *ll_socket)
 /* init_rx_events */
 int init_rx_events(ll_socket_t *ll_socket)
 {
-
+	printf("ini9\n");
 	ll_socket->loop = EV_DEFAULT;
 	ev_io_arg_t *arg = init_ev_io_arg(ll_socket);
 	ll_socket->rx_watcher = &arg->watcher;
-
+	printf(">2 ll_sap = %d, h_dest = ", arg->public_arg.ll_sap);
+	//print_eth_address(ETH_ADDR_BROADCAST);
+		//	printf(", h_source = ");
+			print_eth_address(ll_socket->if_mac);
+			printf("\n");
 #ifdef KERNEL_RING
 	ev_io_init(	ll_socket->rx_watcher, cb_process_frame_rx,
 				ll_socket->rx_socket_fd,
@@ -660,7 +669,7 @@ int init_rx_events(ll_socket_t *ll_socket)
 				ll_socket->socket_fd,
 				EV_READ	);
 #endif
-
+printf("ev_io_start\n");
 	ev_io_start(ll_socket->loop, ll_socket->rx_watcher);
 
     return(EX_OK);
@@ -712,7 +721,7 @@ int close_events(const ll_socket_t *ll_socket)
 /* cb_process_frame_rx */
 void cb_process_frame_rx
 	(struct ev_loop *loop, struct ev_io *watcher, int revents)
-{
+{printf("ini10\n");
 
 	if( EV_ERROR & revents )
 	{
@@ -750,7 +759,7 @@ void cb_process_frame_tx
 /* set_cb_frame_rx */
 int set_cb_frame_rx(ll_socket_t *ll_socket, ev_cb_t cb_frame_rx)
 {
-
+	printf("ini11\n");
 	if ( ll_socket == NULL )
 		{ return(EX_NULL_PARAM); }
 
@@ -783,6 +792,12 @@ int start_ll_socket(ll_socket_t *ll_socket)
 
 	// 1) start event_loop event's reading
 	log_app_msg("Starting ev_run_loop.\n");
+	print_eth_address(ll_socket->if_mac);
+	//printf(ll_socket->loop);
+	printf("1\n");
+	//printf("%d %s\n",ll_socket-> frame_type,);
+	//print_eth_address(ll_socket->if_mac);
+	//ll_socket->sll_protocol = htons(ETH_P_ALL);
 	ev_loop(ll_socket->loop, 0);
 	log_app_msg("Done ev_run_loop.\n");
 	ll_socket->state = LL_SOCKET_STATE_RUNNING;

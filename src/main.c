@@ -79,8 +79,8 @@ int main(int argc, char **argv)
 							cfg->frame_type	)
 						) == NULL )
 		{ handle_app_error("Could not open ll_socket.\n"); }
-	printf("descriptor %d\n",ll_socket->socket_fd);
-
+	printf("descriptor %d. volvo de open_ll_socket \n",ll_socket->socket_fd);
+printf("socket aberto\n");
 	#ifdef KERNEL_RING
 		log_app_msg("TX socket open with fd = %d\n", ll_socket->tx_socket_fd);
 		log_app_msg("RX socket open with fd = %d\n", ll_socket->rx_socket_fd);
@@ -92,16 +92,17 @@ int main(int argc, char **argv)
 	if ( cfg->is_transmitter == true )
 	{
 		log_app_msg("Setting up transmitter mode...\n");
+
 	}
 	else
-	{
+	{print_eth_address(ll_socket->if_mac);
 		log_app_msg("Setting up receiver mode...\n");
 	}
 
 	//exit(EXIT_SUCCESS);
-
+printf("entro en start_ll_socket\n");
 	start_ll_socket(ll_socket);
-
+printf("start\n");
 	// 4) sockets are closed before exiting application
 	close_ll_socket(ll_socket);
 	log_app_msg("Socket is closed.\n");
