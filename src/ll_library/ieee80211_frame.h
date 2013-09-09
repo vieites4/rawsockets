@@ -72,8 +72,9 @@ typedef struct ieee80211_header
 	//uint16_t duration_id;					/*!< Duration id field (2 B). */
 
 	//unsigned char bssid_address[ETH_ALEN];	/*!< BSSID MAC address. */
+	unsigned char dest_address[ETH_ALEN]; //é importante a orde na que coloco os compoñentes do struct
 	unsigned char src_address[ETH_ALEN];	/*!< Source MAC address. */
-	unsigned char dest_address[ETH_ALEN];	/*!< Destination MAC address. */
+		/*!< Destination MAC address. */
 
 	//uint16_t sequence_control;				/*!< Sequence control (2 B). */
 
