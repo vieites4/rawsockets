@@ -22,6 +22,7 @@
 
  #include "ieee80211_frame.h"
 const unsigned char AMINHA[ETH_ALEN]={ 0x00, 0x22, 0xfb, 0x8f, 0xe4, 0x9a }; //;00:23:8b:fc:0e:3b
+const unsigned char ANTON[ETH_ALEN]={ 0x00, 0x1E, 0x65, 0x5B, 0xC4, 0x04 }; //;00:23:8b:fc:0e:3b
 /* new_ieee80211_frame */
 ieee80211_frame_t *new_ieee80211_frame()
 {
@@ -73,7 +74,7 @@ ieee80211_frame_t *new_ieee80211_frame()
 
 
 
-ieee80211_frame_t *init_ieee80211_frame	(	const int ll_sap, const unsigned char *h_source, const unsigned char *h_dest	)
+ieee80211_frame_t *init_ieee80211_frame	(	const int ll_sap, const unsigned char *h_dest, const unsigned char *h_source	)
 {
 
 	ieee80211_frame_t *f = new_ieee80211_frame();
@@ -180,8 +181,8 @@ int __tx_ieee80211_test_frame
 {const unsigned char QOS_M[2]={0x00,0x00};const unsigned char RTH[2]={0x00,0x00};
 //	ieee80211_frame_t *tx_frame	= init_ieee80211_frame(0x08, 0x04, 0, ETH_ADDR_BROADCAST, h_source, ETH_ADDR_FAKE,	0,ETH_ADDR_NULL,QOS_M);//null
 //ieee80211_frame_t *tx_frame	= init_ieee80211_frame(0x08, 0x04, 0, ETH_ADDR_BROADCAST, h_source, ETH_ADDR_FAKE,	0,ETH_ADDR_NULL,QO);//null
-ieee80211_frame_t *tx_frame = init_ieee80211_frame(ll_sap, h_source, AMINHA);//ETH_ADDR_BROADCAST);
-
+ieee80211_frame_t *tx_frame = init_ieee80211_frame(ll_sap, ANTON,h_source );//ETH_ADDR_BROADCAST);
+printf("esta é a nova\n");
 tx_frame->info.frame_len = IEEE_80211_HLEN + 10;
 	//printf("%x %x \n",* (h_source+5),* (h_source +6));
 	//memcpy(tx_frame->buffer.rth,RTH,2);

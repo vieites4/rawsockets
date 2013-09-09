@@ -41,8 +41,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-#include <sys/mman.h>
-
+#include <sys/mman.h>ma
 #include <ev.h>
 
 #ifdef KERNEL_RING
